@@ -5,6 +5,7 @@ import com.neonajam.neotracker.dto.nasa.NasaCloseApproach;
 import com.neonajam.neotracker.dto.nasa.NasaFeedResponse;
 import com.neonajam.neotracker.model.Asteroid;
 import com.neonajam.neotracker.model.CloseApproach;
+import com.neonajam.neotracker.model.SizeClass;
 import com.neonajam.neotracker.repository.AsteroidRepository;
 import org.springframework.stereotype.Service;
 
@@ -67,6 +68,9 @@ public class AsteroidService {
                 nasaAsteroid.getEstimatedDiameter().getMeters().getEstimatedDiameterMin());
         asteroid.setEstimatedDiameterMaxMeters(
                 nasaAsteroid.getEstimatedDiameter().getMeters().getEstimatedDiameterMax());
+        asteroid.setSizeClass(SizeClass.fromDiameter(
+                asteroid.getEstimatedDiameterMinMeters(),
+                asteroid.getEstimatedDiameterMaxMeters()));
         asteroid.setPotentiallyHazardous(nasaAsteroid.isPotentiallyHazardous());
 
         Instant now = Instant.now();
@@ -83,7 +87,6 @@ public class AsteroidService {
             for (NasaCloseApproach nasaApproach : nasaAsteroid.getCloseApproachData()) {
                 CloseApproach approach = new CloseApproach();
                 approach.setApproachDate(LocalDate.parse(nasaApproach.getCloseApproachDate()));
-                // NASA returns these as strings — parse to double
                 approach.setRelativeVelocityKph(
                         Double.parseDouble(nasaApproach.getRelativeVelocity().getKilometersPerHour()));
                 approach.setMissDistanceKm(
