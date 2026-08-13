@@ -21,10 +21,13 @@ public class AsteroidService {
 
     private final NasaClient nasaClient;
     private final AsteroidRepository asteroidRepository;
+    private final DataQualityService dataQualityService;
 
-    public AsteroidService(NasaClient nasaClient, AsteroidRepository asteroidRepository) {
+    public AsteroidService(NasaClient nasaClient, AsteroidRepository asteroidRepository,
+                           DataQualityService dataQualityService) {
         this.nasaClient = nasaClient;
         this.asteroidRepository = asteroidRepository;
+        this.dataQualityService = dataQualityService;
     }
 
     public int fetchAndStore(String startDate, String endDate) {
@@ -60,6 +63,17 @@ public class AsteroidService {
         Optional<Asteroid> existing = asteroidRepository.findByNeoReferenceId(nasaAsteroid.getNeoReferenceId());
 
         Asteroid asteroid = existing.orElseGet(Asteroid::new);
+
+        //New values from NASA before overwriting.
+        double newDiameterMin = nasaAsteroid.getEstimatedDiameter().getMeters().getEstimatedDiameterMin();
+        double newDiameterMax = nasaAsteroid.getEstimatedDiameter().getMeters().getEstimatedDiameterMax();
+        boolean newHazardous = nasaAsteroid.isPotentiallyHazardous();
+        Double newNearestMiss = computeNearestMiss(nasaAsteroid);
+
+        if (existing.isPresent()) {
+            dataQualityService.detectAndLog(asteroid, newDiameterMin, newDiameterMax,
+                    newHazardous, newNearestMiss);
+        }
 
         asteroid.setNeoReferenceId(nasaAsteroid.getNeoReferenceId());
         asteroid.setName(nasaAsteroid.getName());
@@ -97,6 +111,28 @@ public class AsteroidService {
             }
         }
 
-        asteroidRepository.save(asteroid);
+        Asteroid saved =  asteroidRepository.save(asteroid);
+
+        DataQualityService.ConfidenceResult confidence = dataQualityService.computeConfidence(saved);
+        saved.setConfidenceRating(confidence.rating());
+        asteroidRepository.save(saved);
+
+        // There is no prior snapshot for a new asteroid,
+        // so the new data is saved for this purpose.
+        if (existing.isEmpty()) {
+            dataQualityService.detectAndLog(saved, newDiameterMin, newDiameterMax, newHazardous,
+                    newNearestMiss);
+        }
+    }
+
+    private Double computeNearestMiss (NasaAsteroid nasaAsteroid) {
+        if (nasaAsteroid.getCloseApproachData() == null || nasaAsteroid.getCloseApproachData().isEmpty()) {
+            return null;
+        }
+
+        return nasaAsteroid.getCloseApproachData().stream()
+                .mapToDouble(a -> Double.parseDouble(a.getMissDistance().getKilometers()))
+                .min()
+                .orElse(Double.MAX_VALUE);
     }
 }
