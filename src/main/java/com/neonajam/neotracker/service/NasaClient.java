@@ -1,6 +1,7 @@
 package com.neonajam.neotracker.service;
 
 import com.neonajam.neotracker.dto.nasa.NasaFeedResponse;
+import com.neonajam.neotracker.exception.NasaApiException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -18,14 +19,18 @@ public class NasaClient {
     }
 
     public NasaFeedResponse getFeed(String startDate, String endDate) {
-        return restClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/feed")
-                        .queryParam("start_date", startDate)
-                        .queryParam("end_date", endDate)
-                        .queryParam("api_key", apiKey)
-                        .build())
-                .retrieve()
-                .body(NasaFeedResponse.class);
+        try {
+            return restClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/feed")
+                            .queryParam("start_date", startDate)
+                            .queryParam("end_date", endDate)
+                            .queryParam("api_key", apiKey)
+                            .build())
+                    .retrieve()
+                    .body(NasaFeedResponse.class);
+        } catch (Exception ex) {
+            throw new NasaApiException("Failed to fetch data from NASA feed", ex);
+        }
     }
 }

@@ -3,6 +3,7 @@ package com.neonajam.neotracker.service;
 import com.neonajam.neotracker.dto.nasa.NasaAsteroid;
 import com.neonajam.neotracker.dto.nasa.NasaCloseApproach;
 import com.neonajam.neotracker.dto.nasa.NasaFeedResponse;
+import com.neonajam.neotracker.exception.InvalidDateRangeException;
 import com.neonajam.neotracker.model.Asteroid;
 import com.neonajam.neotracker.model.CloseApproach;
 import com.neonajam.neotracker.model.SizeClass;
@@ -36,11 +37,11 @@ public class AsteroidService {
 
         //Validate that the date range is within 7 days and that the start date is not after the end date
         if (end.isBefore(start)) {
-            throw new IllegalArgumentException("End date must not be before start date");
+            throw new InvalidDateRangeException("End date must not be before start date");
         }
 
         if (ChronoUnit.DAYS.between(start, end) > 7) {
-            throw new IllegalArgumentException("Date range cannot exceed 7 days");
+            throw new InvalidDateRangeException("Date range cannot exceed 7 days");
         }
 
         NasaFeedResponse feed = nasaClient.getFeed(startDate, endDate);
