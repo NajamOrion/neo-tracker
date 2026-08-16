@@ -85,30 +85,6 @@ public class DataQualityServiceTest {
     }
 
     @Test
-    void computeConfidence_wideDiameterSpread_deductsUncertainty() {
-        Asteroid a = asteroidWith(20, 200, true);
-
-        when(dataChangeLogRepository.countByAsteroid(a)).thenReturn(0L);
-        when(dataChangeLogRepository.findByAsteroidOrderByChangedAtDesc(a)).thenReturn(new ArrayList<>());
-
-        DataQualityService.ConfidenceResult result = dataQualityService.computeConfidence(a);
-
-        assertTrue(result.reasons().contains("High diameter uncertainty"));
-    }
-
-    @Test
-    void computeConfidence_narrowDiameterSpread_noUncertaintyDeduction() {
-        Asteroid a = asteroidWith(100, 110, true);
-
-        when(dataChangeLogRepository.countByAsteroid(a)).thenReturn(0L);
-        when(dataChangeLogRepository.findByAsteroidOrderByChangedAtDesc(a)).thenReturn(new ArrayList<>());
-
-        DataQualityService.ConfidenceResult result = dataQualityService.computeConfidence(a);
-
-        assertFalse(result.reasons().contains("High diameter uncertainty"));
-    }
-
-    @Test
     void computeConfidence_dataRevisedMultipleTimes_flagsInstability() {
         Asteroid a = asteroidWith(100, 150, true);
 

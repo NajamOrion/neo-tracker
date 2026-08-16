@@ -94,13 +94,6 @@ public class DataQualityService {
         if (diameterMin <= 0 || diameterMax <= 0) {
             score -= 30;
             reasons.add("Estimated diameter data is missing or invalid.");
-        } else {
-            //If relative spread > 0.5, then it is a wide diameter uncertainty.
-            double midpoint = (diameterMin + diameterMax) / 2;
-            if ((diameterMax - diameterMin)/midpoint > 0.5) {
-                score -= 20;
-                reasons.add("High diameter uncertainty");
-            }
         }
 
         long changeCount = changeLogRepository.countByAsteroid(asteroid);
