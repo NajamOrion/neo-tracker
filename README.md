@@ -20,6 +20,8 @@ So this one keeps history, spots the changes, and puts a confidence rating on ev
 
 There is also a small mission terminal-styled frontend (served from the app) for fetching, filtering, and inspecting an asteroid's data-quality report.
 
+![NEO Tracker demo](assets/docs/neo_tracker_demo.gif)
+GIF: Fetching asteroids, filtering the list, and inspecting an asteroid's confidence rating and change history
 ---
 
 ## Tech stack
